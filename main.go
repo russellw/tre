@@ -63,6 +63,9 @@ func printTree(dir string, indent string, filesOnly bool, gitignore *GitIgnore) 
 
 	var filteredEntries []os.DirEntry
 	for _, entry := range entries {
+		if entry.Name() == ".git" {
+			continue
+		}
 		path := filepath.Join(dir, entry.Name())
 		if !gitignore.IsIgnored(path, entry.IsDir()) {
 			if !filesOnly || !entry.IsDir() {
