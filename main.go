@@ -55,7 +55,7 @@ func (gi *GitIgnore) IsIgnored(path string, isDir bool) bool {
 	return false
 }
 
-func printTree(dir string, indent string, filesOnly bool, gitignore *GitIgnore) error {
+func printTree(dir string, indent string, dirsOnly bool, gitignore *GitIgnore) error {
 	entries, err := os.ReadDir(dir)
 	if err != nil {
 		return err
@@ -68,7 +68,7 @@ func printTree(dir string, indent string, filesOnly bool, gitignore *GitIgnore) 
 		}
 		path := filepath.Join(dir, entry.Name())
 		if !gitignore.IsIgnored(path, entry.IsDir()) {
-			if !filesOnly || !entry.IsDir() {
+			if !dirsOnly || entry.IsDir() {
 				filteredEntries = append(filteredEntries, entry)
 			}
 		}
@@ -81,9 +81,9 @@ func printTree(dir string, indent string, filesOnly bool, gitignore *GitIgnore) 
 	for _, entry := range filteredEntries {
 		fmt.Printf("%s%s\n", indent, entry.Name())
 		
-		if entry.IsDir() && !filesOnly {
+		if entry.IsDir() {
 			subDir := filepath.Join(dir, entry.Name())
-			printTree(subDir, indent+"  ", filesOnly, gitignore)
+			printTree(subDir, indent+"  ", dirsOnly, gitignore)
 		}
 	}
 
@@ -91,8 +91,8 @@ func printTree(dir string, indent string, filesOnly bool, gitignore *GitIgnore) 
 }
 
 func main() {
-	var filesOnly bool
-	flag.BoolVar(&filesOnly, "f", false, "Show files only")
+	var dirsOnly bool
+	flag.BoolVar(&dirsOnly, "f", false, "Show directories only")
 	flag.Parse()
 
 	targetDir := "."
@@ -114,7 +114,7 @@ func main() {
 	gitignore := NewGitIgnore(absDir)
 	
 	fmt.Println(filepath.Base(absDir))
-	if err := printTree(absDir, "  ", filesOnly, gitignore); err != nil {
+	if err := printTree(absDir, "  ", dirsOnly, gitignore); err != nil {
 		fmt.Fprintf(os.Stderr, "Error traversing directory: %v\n", err)
 		os.Exit(1)
 	}
